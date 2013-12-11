@@ -1,0 +1,110 @@
+
+
+import java.util.*;
+
+HashMap graph;
+PFont fontA;
+
+int stageSize = 900;  //size of the stage
+int boxHeight = 10;    //height of box in pixels
+int border = 5;        //border around box in pixels
+float speed = 5;       //speed to move nodes together, 1 = slow, 100 = fast.
+float bubble = 80;    //distance nodes will try to stay apart
+float curveSize = 50; //size of the curve coming out of node, 0 = no curve.
+
+color backgroundColor = color(227, 224, 213);
+color lineColor = color(83, 100, 105);
+color boxColor = color(185, 200, 201);
+color hoverColor = color(214, 186, 204);
+color textColor = color(83, 100, 105);
+
+
+String fileName = "graph.txt"; 
+
+
+void setup() 
+{
+  size(stageSize, stageSize);
+  background(backgroundColor);
+  
+  char[] letters = new char[]{'a'};
+  fontA = createFont("Helvetica", 16, true, letters);
+
+  //create blank graph
+  graph = new HashMap();
+  String[] lines = loadStrings(fileName);
+  
+  //add the nodes into the graph
+  for(int i =0; i <lines.length; i++)
+  {
+    String[] pieces = split(lines[i], ',');
+    
+    float startX = random(width);
+    float startY = random(height);
+    String name = trim(pieces[0]);
+    
+    graph.put(name, new node(startX, startY, name));
+  }
+  
+  //add the connections
+  for(int i =0; i <lines.length; i++)
+  {
+    String[] pieces = split(lines[i], ',');
+    
+    String name = trim(pieces[0]);
+    for(int j=1; j<pieces.length; j++)
+    {
+      String output = trim(pieces[j]);
+      
+      if(output != "" && output != null) 
+      {
+        if(graph.containsKey(name) && graph.containsKey(output))
+        {
+          ((node)graph.get(name)).addOutput(output);
+          ((node)graph.get(output)).addInput(name);
+        } else {
+          println("Output/name does not match");
+        }
+      }
+    }
+  }
+  
+  
+  
+  
+}
+
+void draw() 
+{
+  background(backgroundColor);
+  
+  Iterator i = graph.entrySet().iterator();  // Get an iterator
+
+  while (i.hasNext()) {
+    Map.Entry me = (Map.Entry)i.next();
+    ((node)me.getValue()).update();
+    ((node)me.getValue()).draw();
+  }
+}
+
+
+void mousePressed() 
+{
+  Iterator i = graph.entrySet().iterator();
+
+  boolean found = false;
+  while (i.hasNext() && !found) {
+    Map.Entry me = (Map.Entry)i.next();
+    found = ((node)me.getValue()).pressed(); 
+  }
+}
+
+void mouseReleased() 
+{
+  Iterator i = graph.entrySet().iterator();
+
+  while (i.hasNext()) {
+    Map.Entry me = (Map.Entry)i.next();
+    ((node)me.getValue()).released(); 
+  }
+}
